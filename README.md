@@ -26,6 +26,14 @@ export GEMINI_API_KEY="put-your-api-key-here"
 AI_HARNESS_MODEL=gemini python3 langchain_eval_harness.py
 ```
 
+Or use a local `.env` file:
+
+```bash
+cp .env.example .env
+# edit .env and add your real Gemini API key
+python3 langchain_eval_harness.py
+```
+
 Optional: change the Gemini model:
 
 ```bash
@@ -203,7 +211,7 @@ AI_HARNESS_MODEL=gemini python3 langchain_eval_harness.py
 
 This uses `langchain-google-genai`.
 
-The script reads the key from `GEMINI_API_KEY` or `GOOGLE_API_KEY`, so your API key does not need to be saved in the repo.
+The script reads the key from `GEMINI_API_KEY`, `GOOGLE_API_KEY`, or a local `.env` file, so your API key does not need to be saved in the repo.
 
 Official LangChain docs: https://docs.langchain.com/oss/python/langchain/overview
 

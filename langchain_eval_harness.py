@@ -3,6 +3,25 @@ import os  # Import os so we can read environment variables like GEMINI_API_KEY.
 from datetime import datetime, timezone  # Import datetime so the output file can show when the run happened.
 
 
+def load_env_file():  # Define a tiny helper that loads simple KEY=value lines from a local .env file.
+    if not os.path.exists(".env"):  # Check whether a .env file exists in this folder.
+        return  # Do nothing if the user has not created a .env file.
+    with open(".env", "r", encoding="utf-8") as file:  # Open the .env file as normal text.
+        for line in file:  # Read the .env file one line at a time.
+            clean_line = line.strip()  # Remove extra spaces and newlines from this line.
+            if not clean_line or clean_line.startswith("#"):  # Skip blank lines and comments.
+                continue  # Move to the next line.
+            if "=" not in clean_line:  # Skip lines that are not KEY=value pairs.
+                continue  # Move to the next line.
+            key, value = clean_line.split("=", 1)  # Split the line into the variable name and value.
+            key = key.strip()  # Clean extra spaces around the variable name.
+            value = value.strip().strip('"').strip("'")  # Clean spaces and simple quote marks around the value.
+            os.environ.setdefault(key, value)  # Add the variable only if it is not already set in the shell.
+
+
+load_env_file()  # Load local .env values before reading model settings.
+
+
 try:  # Start a small safety check so beginners get a helpful message if LangChain is missing.
     from langchain_core.language_models.fake_chat_models import FakeListChatModel  # Import a fake chat model for local practice.
     from langchain_core.prompts import ChatPromptTemplate  # Import LangChain's prompt template helper.
