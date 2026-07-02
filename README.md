@@ -1,10 +1,12 @@
 # AI Evaluation Harness
 
-A tiny, beginner-friendly AI evaluation harness written in Python.
+![AI Evaluation Harness cover](assets/ai-harness-cover.png)
+
+A small, beginner-friendly AI evaluation harness written in Python.
 
 The goal is simple: **give an AI a small exam, collect its answers, grade them, and save the results.**
 
-This repo starts with a toy local model so the idea is easy to understand, then shows the same evaluation loop with LangChain and Gemini.
+This project starts with a toy local model so the evaluation idea is easy to understand, then uses the same evaluation loop with LangChain and Gemini.
 
 ## Quick Start
 
@@ -29,15 +31,10 @@ Run the Gemini version:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements-langchain.txt
-```
-
-Then create a local environment file:
-
-```bash
 cp .env.example .env
 ```
 
-Edit `.env` and add your real API key:
+Edit `.env` and add your real Gemini API key:
 
 ```bash
 AI_HARNESS_MODEL=gemini
@@ -51,7 +48,7 @@ Then run:
 python langchain_eval_harness.py
 ```
 
-The harness writes the latest result to:
+The latest run is saved to:
 
 ```bash
 results.json
@@ -69,17 +66,14 @@ The Gemini run completed all 4 questions correctly:
 
 ![Gemini harness run showing 100 percent score](assets/example-gemini-run.png)
 
-The saved JSON result looks like this:
+The saved result includes:
 
-```json
-{
-  "model": "gemini-3.5-flash",
-  "total_questions": 4,
-  "correct_count": 4,
-  "score": 1.0,
-  "score_percent": 100
-}
-```
+- the model name
+- the run timestamp
+- the number of tested questions
+- the number of correct answers
+- the final score
+- every question, expected answer, model answer, and pass/fail result
 
 ## What Is An Evaluation Harness?
 
@@ -110,24 +104,15 @@ The main question is:
 
 ## What This Project Does
 
-This project evaluates a tiny set of math and logic questions:
+This project evaluates a tiny set of math and logic questions.
 
-```python
-dataset = [
-    {"question": "What is 2 + 2?", "expected": "4"},
-    {"question": "What is 3 * 5?", "expected": "15"},
-    {"question": "If all cats are animals, are cats animals? yes or no", "expected": "yes"},
-    {"question": "What is 10 - 7?", "expected": "3"},
-]
-```
-
-For every item, the harness:
+For every question, the harness:
 
 1. reads the question
 2. wraps it in a prompt
 3. sends it to a model
 4. receives the model answer
-5. compares the answer with the expected answer
+5. compares the model answer with the expected answer
 6. prints the result
 7. saves the full run to `results.json`
 
@@ -137,7 +122,7 @@ That is the entire evaluation loop.
 
 `tiny_eval_harness.py`
 
-The beginner version. It uses a tiny fake model so you can understand the flow without installing anything or using an API key.
+The beginner version. It uses a small fake model so the flow can be understood without installing anything or using an API key.
 
 `langchain_eval_harness.py`
 
@@ -155,9 +140,13 @@ An example environment file. Copy it to `.env` and add your Gemini key locally. 
 
 The latest saved evaluation result.
 
+`assets/ai-harness-cover.png`
+
+The README cover image.
+
 `assets/example-gemini-run.png`
 
-A screenshot of a real successful Gemini run.
+A screenshot of a successful Gemini run.
 
 ## The 4 Core Pieces
 
@@ -165,18 +154,11 @@ A screenshot of a real successful Gemini run.
 
 The dataset is the exam paper. It contains questions and correct answers.
 
-In this project, the dataset is just a Python list. In a larger project, it could be a JSONL file, CSV file, database table, or benchmark dataset.
+In this project, the dataset is tiny. In a larger project, it could be a JSONL file, CSV file, database table, or benchmark dataset.
 
 **2. Prompt Template**
 
 The prompt template controls how the question is shown to the model.
-
-For example:
-
-```text
-Answer only with the final answer.
-Question: What is 2 + 2?
-```
 
 This matters because small prompt changes can change model behavior.
 
@@ -196,13 +178,7 @@ In bigger systems, connectors may talk to OpenAI, Anthropic, Gemini, Ollama, vLL
 
 The grader decides whether the model answer is correct.
 
-This project uses simple exact matching:
-
-```python
-model_answer.strip().lower() == expected_answer.strip().lower()
-```
-
-That is good enough for simple math and yes/no answers.
+This project uses simple exact matching, which is good enough for simple math and yes/no answers.
 
 For harder tasks, grading becomes more sophisticated.
 
@@ -210,7 +186,7 @@ For harder tasks, grading becomes more sophisticated.
 
 The results file stores the outcome of one evaluation run.
 
-Example fields:
+Useful fields include:
 
 - `model`: which model was tested
 - `run_at`: when the run happened
@@ -242,19 +218,11 @@ That distinction is important. LangChain is a helper, not the evaluation strateg
 
 ## Beginner Version vs Gemini Version
 
-The beginner version teaches the idea:
+The beginner version teaches the idea with a local fake model.
 
-```text
-dataset -> prompt -> fake model -> grader -> score
-```
+The Gemini version uses the same idea, but the model connector becomes real.
 
-The Gemini version uses the same idea, but the model connector becomes real:
-
-```text
-dataset -> LangChain prompt -> Gemini -> grader -> results.json
-```
-
-So the structure stays the same. Only the model connector changes.
+The structure stays the same. Only the model connector changes.
 
 ## What A Professional Harness Adds
 
@@ -308,14 +276,7 @@ Without versioning, it is hard to know why a score changed.
 
 A harness can catch behavior changes.
 
-Example:
-
-```text
-Yesterday: model scored 92%
-Today: model scored 81%
-```
-
-That tells the team something changed and needs investigation.
+For example, if a model scored 92% yesterday and 81% today, the team knows something changed and needs investigation.
 
 **Error analysis**
 
