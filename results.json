@@ -1,10 +1,10 @@
 {
-  "model": "toy-rule-based-model",
-  "run_at": "2026-07-02T15:46:55.513820+00:00",
+  "model": "gemini-3.5-flash",
+  "run_at": "2026-07-02T17:09:02.060007+00:00",
   "total_questions": 4,
-  "correct_count": 3,
-  "score": 0.75,
-  "score_percent": 75,
+  "correct_count": 4,
+  "score": 1.0,
+  "score_percent": 100,
   "results": [
     {
       "question": "What is 2 + 2?",
@@ -27,8 +27,8 @@
     {
       "question": "What is 10 - 7?",
       "expected": "3",
-      "model_answer": "2",
-      "correct": false
+      "model_answer": "3",
+      "correct": true
     }
   ]
 }

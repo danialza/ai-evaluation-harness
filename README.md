@@ -1,6 +1,10 @@
 # AI Evaluation Harness
 
-A tiny, beginner-friendly tutorial for understanding an AI Evaluation Harness from scratch.
+A tiny, beginner-friendly AI evaluation harness written in Python.
+
+The goal is simple: **give an AI a small exam, collect its answers, grade them, and save the results.**
+
+This repo starts with a toy local model so the idea is easy to understand, then shows the same evaluation loop with LangChain and Gemini.
 
 ## Quick Start
 
@@ -10,209 +14,370 @@ Run the no-dependency beginner version:
 python3 tiny_eval_harness.py
 ```
 
-It writes a simple `results.json` file after the run.
-
-Run the optional LangChain fake-model version:
+Run the LangChain fake-model version:
 
 ```bash
-python3 -m pip install -r requirements-langchain.txt
-python3 langchain_eval_harness.py
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-langchain.txt
+python langchain_eval_harness.py
 ```
 
-Run the optional Gemini version:
+Run the Gemini version:
 
 ```bash
-export GEMINI_API_KEY="put-your-api-key-here"
-AI_HARNESS_MODEL=gemini python3 langchain_eval_harness.py
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-langchain.txt
 ```
 
-Or use a local `.env` file:
+Then create a local environment file:
 
 ```bash
 cp .env.example .env
-# edit .env and add your real Gemini API key
-python3 langchain_eval_harness.py
 ```
 
-Optional: change the Gemini model:
+Edit `.env` and add your real API key:
 
 ```bash
-GEMINI_MODEL=gemini-3.5-flash AI_HARNESS_MODEL=gemini python3 langchain_eval_harness.py
+AI_HARNESS_MODEL=gemini
+GEMINI_API_KEY=your-real-api-key
+GEMINI_MODEL=gemini-3.5-flash
 ```
 
-## 1. The Big Picture (What is it anyway?)
+Then run:
 
-An **AI Evaluation Harness** is like a **school exam for an AI**.
+```bash
+python langchain_eval_harness.py
+```
 
-- The **dataset** is the exam paper.
-- The **AI model** is the student.
-- The **prompt** is how we ask each question.
-- The **grader** checks the AI's answer against the answer key.
-- The **final score** tells us how well the AI did.
+The harness writes the latest result to:
+
+```bash
+results.json
+```
+
+## Latest Example Run
+
+The Gemini run completed all 4 questions correctly:
+
+- model: `gemini-3.5-flash`
+- total questions: `4`
+- correct answers: `4`
+- final score: `1.0`
+- final score percent: `100%`
+
+![Gemini harness run showing 100 percent score](assets/example-gemini-run.png)
+
+The saved JSON result looks like this:
+
+```json
+{
+  "model": "gemini-3.5-flash",
+  "total_questions": 4,
+  "correct_count": 4,
+  "score": 1.0,
+  "score_percent": 100
+}
+```
+
+## What Is An Evaluation Harness?
+
+An **AI evaluation harness** is like a small exam system for an AI model.
+
+It does not make the model smarter. It checks how well the model performs on a known set of tasks.
+
+Think of it like this:
+
+- the **dataset** is the exam paper
+- the **prompt template** is how we ask each question
+- the **model connector** is how we talk to the AI
+- the **grader** checks the answer
+- the **results file** records what happened
 
 ```mermaid
 flowchart LR
-    A[Dataset question] --> B[Prompt template]
-    B --> C[AI model]
-    C --> D[Model answer]
+    A[Dataset] --> B[Prompt Template]
+    B --> C[Model Connector]
+    C --> D[Model Answer]
     D --> E[Grader]
-    E --> F[Score]
+    E --> F[results.json]
 ```
 
-That is the whole idea.
+The main question is:
 
-We are just asking:
+**"If I give this model these questions, how many does it get right?"**
 
-**"When I give the AI these test questions, how many does it get right?"**
+## What This Project Does
 
-## 2. The 4 Core Pieces
-
-**1. The Dataset (The exam questions)**
-
-- A small list of questions.
-- Each question has an expected correct answer.
-- Example: `What is 2 + 2?` -> `4`
-
-**2. The Prompt Template (How we wrap the question)**
-
-- The raw question is not always sent alone.
-- We usually wrap it with instructions.
-- Example: `Answer only with the final answer. Question: What is 2 + 2?`
-
-**3. The Model Connector (How we talk to the AI)**
-
-- This is the part that sends the prompt to the AI.
-- In a real project, this might call OpenAI, Hugging Face, Ollama, vLLM, or a local model.
-- In our tiny version, we use a fake toy model so the flow is easy to see.
-
-**4. The Grader/Evaluator (How we check if the answer is correct)**
-
-- This compares the AI answer to the expected answer.
-- For simple tasks, exact matching is fine.
-- Example: model says `4`, answer key says `4`, so it is correct.
-
-## 3. Step-by-Step Code (Python)
-
-Save this as `tiny_eval_harness.py` and run it with:
-
-```bash
-python3 tiny_eval_harness.py
-```
+This project evaluates a tiny set of math and logic questions:
 
 ```python
-dataset = [  # Create the tiny exam dataset that our AI will be tested on.
-    {"question": "What is 2 + 2?", "expected": "4"},  # Add question 1 and its correct answer.
-    {"question": "What is 3 * 5?", "expected": "15"},  # Add question 2 and its correct answer.
-    {"question": "If all cats are animals, are cats animals? yes or no", "expected": "yes"},  # Add question 3 and its correct answer.
-    {"question": "What is 10 - 7?", "expected": "3"},  # Add question 4 and its correct answer.
-]  # Finish the dataset list.
-
-
-def make_prompt(question):  # Define a function that turns a plain question into a prompt for the AI.
-    prompt = f"Answer only with the final answer.\nQuestion: {question}"  # Add a simple instruction before the question.
-    return prompt  # Give the finished prompt back to the rest of the program.
-
-
-def ask_model(prompt):  # Define the model connector, which is where a real AI call would usually happen.
-    if "2 + 2" in prompt:  # Check whether the prompt contains the first math question.
-        return "4"  # Return the toy model's answer for that question.
-    if "3 * 5" in prompt:  # Check whether the prompt contains the second math question.
-        return "15"  # Return the toy model's answer for that question.
-    if "cats are animals" in prompt:  # Check whether the prompt contains the logic question.
-        return "yes"  # Return the toy model's answer for that question.
-    if "10 - 7" in prompt:  # Check whether the prompt contains the subtraction question.
-        return "2"  # Return a wrong answer on purpose so we can see the grader catch it.
-    return "I don't know"  # Return a fallback answer if the toy model does not recognize the prompt.
-
-
-def grade_answer(model_answer, expected_answer):  # Define the grader that compares the AI answer to the answer key.
-    clean_model_answer = model_answer.strip().lower()  # Clean the model answer by removing spaces and ignoring case.
-    clean_expected_answer = expected_answer.strip().lower()  # Clean the expected answer the same way.
-    is_correct = clean_model_answer == clean_expected_answer  # Check whether the cleaned answers match exactly.
-    return is_correct  # Send True or False back to say whether the model passed this question.
-
-
-correct_count = 0  # Start a counter for how many answers the model gets right.
-
-for item in dataset:  # Loop through every question in the dataset, one at a time.
-    question = item["question"]  # Pull the question text out of the current dataset item.
-    expected = item["expected"]  # Pull the correct answer out of the current dataset item.
-    prompt = make_prompt(question)  # Turn the raw question into the prompt we will send to the model.
-    model_answer = ask_model(prompt)  # Send the prompt to the model connector and get the model's answer.
-    passed = grade_answer(model_answer, expected)  # Ask the grader whether the model answer is correct.
-    if passed:  # Check whether the grader said this answer was correct.
-        correct_count = correct_count + 1  # Add one point to the score.
-    print("Question:", question)  # Show the question that was tested.
-    print("Expected:", expected)  # Show the answer key for this question.
-    print("Model answered:", model_answer)  # Show what the model returned.
-    print("Correct?", passed)  # Show whether the grader marked it correct.
-    print("-" * 40)  # Print a small divider so each result is easy to read.
-
-total_questions = len(dataset)  # Count how many questions were in the dataset.
-score = correct_count / total_questions  # Turn the number correct into a percentage-style score.
-
-print("Final score:", score)  # Print the final score as a decimal, like 0.75.
-print(f"Final score percent: {score * 100:.0f}%")  # Print the final score in a friendlier percent format.
+dataset = [
+    {"question": "What is 2 + 2?", "expected": "4"},
+    {"question": "What is 3 * 5?", "expected": "15"},
+    {"question": "If all cats are animals, are cats animals? yes or no", "expected": "yes"},
+    {"question": "What is 10 - 7?", "expected": "3"},
+]
 ```
 
-What happens here:
+For every item, the harness:
 
-- The harness asks **4 questions**.
-- The toy model gets **3 right**.
-- The grader catches the wrong answer.
-- The final score becomes **75%**.
+1. reads the question
+2. wraps it in a prompt
+3. sends it to a model
+4. receives the model answer
+5. compares the answer with the expected answer
+6. prints the result
+7. saves the full run to `results.json`
 
-That is an evaluation harness in its smallest useful form.
+That is the entire evaluation loop.
 
-## 4. How to Run a Real One
+## Project Files
 
-Once developers move beyond toy examples, they often use tools like EleutherAI's `lm-evaluation-harness`.
+`tiny_eval_harness.py`
 
-One-line local model example:
+The beginner version. It uses a tiny fake model so you can understand the flow without installing anything or using an API key.
+
+`langchain_eval_harness.py`
+
+The LangChain version. It can run with a fake LangChain model or with Gemini.
+
+`requirements-langchain.txt`
+
+The Python packages needed for the LangChain and Gemini version.
+
+`.env.example`
+
+An example environment file. Copy it to `.env` and add your Gemini key locally. The real `.env` file is ignored by git.
+
+`results.json`
+
+The latest saved evaluation result.
+
+`assets/example-gemini-run.png`
+
+A screenshot of a real successful Gemini run.
+
+## The 4 Core Pieces
+
+**1. Dataset**
+
+The dataset is the exam paper. It contains questions and correct answers.
+
+In this project, the dataset is just a Python list. In a larger project, it could be a JSONL file, CSV file, database table, or benchmark dataset.
+
+**2. Prompt Template**
+
+The prompt template controls how the question is shown to the model.
+
+For example:
+
+```text
+Answer only with the final answer.
+Question: What is 2 + 2?
+```
+
+This matters because small prompt changes can change model behavior.
+
+**3. Model Connector**
+
+The model connector is the bridge between the harness and the model.
+
+In this repo, there are three connector styles:
+
+- a toy local connector in `tiny_eval_harness.py`
+- a fake LangChain chat model for local practice
+- a Gemini connector through `langchain-google-genai`
+
+In bigger systems, connectors may talk to OpenAI, Anthropic, Gemini, Ollama, vLLM, Hugging Face, or internal hosted models.
+
+**4. Grader**
+
+The grader decides whether the model answer is correct.
+
+This project uses simple exact matching:
+
+```python
+model_answer.strip().lower() == expected_answer.strip().lower()
+```
+
+That is good enough for simple math and yes/no answers.
+
+For harder tasks, grading becomes more sophisticated.
+
+## What `results.json` Means
+
+The results file stores the outcome of one evaluation run.
+
+Example fields:
+
+- `model`: which model was tested
+- `run_at`: when the run happened
+- `total_questions`: how many questions were tested
+- `correct_count`: how many were correct
+- `score`: decimal score, such as `1.0`
+- `score_percent`: friendly score, such as `100`
+- `results`: per-question details
+
+This is useful because terminal output disappears, but JSON can be stored, compared, charted, or used in a dashboard later.
+
+## Why LangChain Is Here
+
+LangChain is not the harness itself.
+
+In this project, LangChain helps with two parts:
+
+- building the chat prompt
+- swapping the model connector
+
+The evaluation logic is still ours:
+
+- loop through the dataset
+- call the model
+- grade the answer
+- save the result
+
+That distinction is important. LangChain is a helper, not the evaluation strategy.
+
+## Beginner Version vs Gemini Version
+
+The beginner version teaches the idea:
+
+```text
+dataset -> prompt -> fake model -> grader -> score
+```
+
+The Gemini version uses the same idea, but the model connector becomes real:
+
+```text
+dataset -> LangChain prompt -> Gemini -> grader -> results.json
+```
+
+So the structure stays the same. Only the model connector changes.
+
+## What A Professional Harness Adds
+
+This repo is intentionally small. A production-grade AI evaluation harness usually adds more layers.
+
+**Larger datasets**
+
+Instead of 4 questions, teams may use hundreds or thousands of examples.
+
+They often split datasets into:
+
+- smoke tests
+- regression tests
+- benchmark tests
+- safety tests
+- domain-specific tests
+
+**More metrics**
+
+Exact match is only one metric.
+
+Professional evaluations may use:
+
+- accuracy
+- exact match
+- F1 score
+- pass/fail unit tests for code
+- semantic similarity
+- human review
+- LLM-as-a-judge grading
+- latency
+- cost per run
+- refusal rate
+- hallucination rate
+
+**Prompt and model versioning**
+
+Teams track:
+
+- model name
+- model version
+- prompt version
+- temperature
+- max tokens
+- system prompt
+- dataset version
+
+Without versioning, it is hard to know why a score changed.
+
+**Regression testing**
+
+A harness can catch behavior changes.
+
+Example:
+
+```text
+Yesterday: model scored 92%
+Today: model scored 81%
+```
+
+That tells the team something changed and needs investigation.
+
+**Error analysis**
+
+The score alone is not enough.
+
+Teams inspect wrong answers and group failures by type:
+
+- math mistakes
+- instruction-following mistakes
+- formatting mistakes
+- missing context
+- hallucinated facts
+- unsafe answers
+
+This helps decide what to fix next.
+
+**CI and dashboards**
+
+In larger projects, evals often run automatically:
+
+- before a release
+- after a prompt change
+- after switching models
+- nightly on a schedule
+- inside CI/CD
+
+The results may be stored in a database and shown in a dashboard.
+
+**Human review**
+
+Some outputs cannot be graded safely with exact matching.
+
+For writing, reasoning, support answers, or medical/legal-style tasks, teams may add human review or careful rubric-based grading.
+
+## A Real-World Tool
+
+For serious benchmark evaluation, developers often use EleutherAI's `lm-evaluation-harness`.
+
+Example:
 
 ```bash
 lm-eval run --model hf --model_args pretrained=/path/to/local/model --tasks gsm8k --device cuda:0 --batch_size 8
 ```
 
-That means:
-
-- `--model hf` says "use the Hugging Face model connector."
-- `pretrained=/path/to/local/model` points to your local model folder.
-- `--tasks gsm8k` chooses a math benchmark.
-- `--device cuda:0` runs it on the first GPU.
-- `--batch_size 8` tests 8 examples at a time.
+That command evaluates a local Hugging Face model on the `gsm8k` math benchmark.
 
 Official reference: https://github.com/EleutherAI/lm-evaluation-harness
 
-## Bonus: Same Idea With LangChain
+## What This Project Proves
 
-LangChain does not replace the evaluation harness idea.
+This small project shows the core idea behind AI evaluation:
 
-It mostly helps with the **prompt template** and the **model connector**.
+- you can define a dataset
+- you can call a model
+- you can grade the output
+- you can save structured results
+- you can swap from a toy model to a real model
 
-In this repo, `langchain_eval_harness.py` uses LangChain for:
+That is the foundation of a much larger evaluation system.
 
-- building the prompt
-- calling a chat model through one standard interface
-- turning the model output into plain text
+## References
 
-For learning, it uses a fake LangChain chat model first. That means:
-
-- no API key
-- no paid model call
-- same evaluation flow
-
-You can also run it with Gemini:
-
-```bash
-export GEMINI_API_KEY="put-your-api-key-here"
-AI_HARNESS_MODEL=gemini python3 langchain_eval_harness.py
-```
-
-This uses `langchain-google-genai`.
-
-The script reads the key from `GEMINI_API_KEY`, `GOOGLE_API_KEY`, or a local `.env` file, so your API key does not need to be saved in the repo.
-
-Official LangChain docs: https://docs.langchain.com/oss/python/langchain/overview
-
-Official Gemini LangChain integration docs: https://docs.langchain.com/oss/python/integrations/chat/google_generative_ai
+- LangChain docs: https://docs.langchain.com/oss/python/langchain/overview
+- Gemini LangChain integration: https://docs.langchain.com/oss/python/integrations/chat/google_generative_ai
+- EleutherAI lm-evaluation-harness: https://github.com/EleutherAI/lm-evaluation-harness
