@@ -10,11 +10,26 @@ Run the no-dependency beginner version:
 python3 tiny_eval_harness.py
 ```
 
-Run the optional LangChain version:
+It writes a simple `results.json` file after the run.
+
+Run the optional LangChain fake-model version:
 
 ```bash
 python3 -m pip install -r requirements-langchain.txt
 python3 langchain_eval_harness.py
+```
+
+Run the optional Gemini version:
+
+```bash
+export GEMINI_API_KEY="put-your-api-key-here"
+AI_HARNESS_MODEL=gemini python3 langchain_eval_harness.py
+```
+
+Optional: change the Gemini model:
+
+```bash
+GEMINI_MODEL=gemini-3.5-flash AI_HARNESS_MODEL=gemini python3 langchain_eval_harness.py
 ```
 
 ## 1. The Big Picture (What is it anyway?)
@@ -171,7 +186,7 @@ In this repo, `langchain_eval_harness.py` uses LangChain for:
 
 - building the prompt
 - calling a chat model through one standard interface
-- parsing the model output into plain text
+- turning the model output into plain text
 
 For learning, it uses a fake LangChain chat model first. That means:
 
@@ -179,6 +194,32 @@ For learning, it uses a fake LangChain chat model first. That means:
 - no paid model call
 - same evaluation flow
 
-Later, you can swap that fake model for a real OpenAI, Anthropic, Ollama, Hugging Face, or local model connector.
+You can also run it with Gemini:
+
+```bash
+export GEMINI_API_KEY="put-your-api-key-here"
+AI_HARNESS_MODEL=gemini python3 langchain_eval_harness.py
+```
+
+This uses `langchain-google-genai`.
+
+The script reads the key from `GEMINI_API_KEY` or `GOOGLE_API_KEY`, so your API key does not need to be saved in the repo.
 
 Official LangChain docs: https://docs.langchain.com/oss/python/langchain/overview
+
+Official Gemini LangChain integration docs: https://docs.langchain.com/oss/python/integrations/chat/google_generative_ai
+
+## Website Project Angle
+
+For your website, the best story is:
+
+**"I built a tiny AI Evaluation Harness from scratch, then upgraded it to save JSON results and optionally test Gemini."**
+
+That gives the project a nice learning arc:
+
+- first: understand the idea with a tiny local model
+- second: save structured results to `results.json`
+- third: connect the same evaluation loop to Gemini
+- fourth: show the GitHub repo and explain what changed
+
+See `PROJECT_PAGE_SCENARIO.md` for a ready project-page outline.

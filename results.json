@@ -1,0 +1,34 @@
+{
+  "model": "toy-rule-based-model",
+  "run_at": "2026-07-02T15:46:55.513820+00:00",
+  "total_questions": 4,
+  "correct_count": 3,
+  "score": 0.75,
+  "score_percent": 75,
+  "results": [
+    {
+      "question": "What is 2 + 2?",
+      "expected": "4",
+      "model_answer": "4",
+      "correct": true
+    },
+    {
+      "question": "What is 3 * 5?",
+      "expected": "15",
+      "model_answer": "15",
+      "correct": true
+    },
+    {
+      "question": "If all cats are animals, are cats animals? yes or no",
+      "expected": "yes",
+      "model_answer": "yes",
+      "correct": true
+    },
+    {
+      "question": "What is 10 - 7?",
+      "expected": "3",
+      "model_answer": "2",
+      "correct": false
+    }
+  ]
+}
