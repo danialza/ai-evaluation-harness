@@ -216,18 +216,3 @@ The script reads the key from `GEMINI_API_KEY`, `GOOGLE_API_KEY`, or a local `.e
 Official LangChain docs: https://docs.langchain.com/oss/python/langchain/overview
 
 Official Gemini LangChain integration docs: https://docs.langchain.com/oss/python/integrations/chat/google_generative_ai
-
-## Website Project Angle
-
-For your website, the best story is:
-
-**"I built a tiny AI Evaluation Harness from scratch, then upgraded it to save JSON results and optionally test Gemini."**
-
-That gives the project a nice learning arc:
-
-- first: understand the idea with a tiny local model
-- second: save structured results to `results.json`
-- third: connect the same evaluation loop to Gemini
-- fourth: show the GitHub repo and explain what changed
-
-See `PROJECT_PAGE_SCENARIO.md` for a ready project-page outline.
